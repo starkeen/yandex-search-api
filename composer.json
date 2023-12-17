@@ -1,0 +1,40 @@
+{
+  "name": "starkeen/yandex-search-api",
+  "description": "Library for using Yandex Search API",
+  "keywords": ["yandex", "api", "search"],
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Andrey Panisko",
+      "email": "starkeen@gmail.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "YandexSearchAPI\\": "src/"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "10.5.x-dev"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "YandexSearchAPI\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit tests",
+    "test-coverage": "phpunit --coverage-html=coverage tests"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "composer-exit-on-patch": true
+  }
+}
