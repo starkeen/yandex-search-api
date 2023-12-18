@@ -19,9 +19,6 @@ class SearchResponse
 
     private string $requestID;
 
-    private ?int $errorCode = null;
-    private ?string $errorText = null;
-
     public function __construct(SearchRequest $request)
     {
         $this->request = $request;
@@ -45,32 +42,6 @@ class SearchResponse
     {
         return $this->results;
     }
-
-    public function isError(): bool
-    {
-        return $this->errorText !== null;
-    }
-
-    public function getErrorText(): ?string
-    {
-        return $this->errorText;
-    }
-
-    public function setErrorText(string $text): void
-    {
-        $this->errorText = $text;
-    }
-
-    public function getErrorCode(): ?int
-    {
-        return $this->errorCode;
-    }
-
-    public function setErrorCode(?int $errorCode): void
-    {
-        $this->errorCode = $errorCode;
-    }
-
 
     public function getRequestID(): string
     {

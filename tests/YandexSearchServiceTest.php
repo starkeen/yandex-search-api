@@ -126,15 +126,10 @@ class YandexSearchServiceTest extends AbstractTestCase
 
         $request = $this->getRequestMock();
 
-        $result = $service->search($request);
-
-        $this->assertSame($request, $result->getRequest());
-        $this->assertEquals('1348828873568466-1289158387737177180255457-3-011-XML', $result->getRequestID());
-
-        $this->assertNull($result->getPagination());
-        $this->assertNull($result->getCorrection());
-
-        $this->assertCount(0, $result->getResults());
+        $this->expectException(SearchException::class);
+        $this->expectExceptionCode(15);
+        $this->expectExceptionMessage('Искомая комбинация слов нигде не встречается');
+        $service->search($request);
     }
 
     private function getFullResponseXML(): string
