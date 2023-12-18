@@ -13,12 +13,7 @@ class SearchResponse
      */
     private array $results;
 
-    private int $totalCount = 0;
-    private string $totalCountHuman = '';
-
-    private int $page = 0;
-
-    private int $pageSize = 1;
+    private ?Pagination $pagination = null;
 
     private ?Correction $correction = null;
 
@@ -30,7 +25,6 @@ class SearchResponse
     public function __construct(SearchRequest $request)
     {
         $this->request = $request;
-
         $this->results = [];
     }
 
@@ -45,7 +39,7 @@ class SearchResponse
     }
 
     /**
-     * @return array|SearchResultItem[]
+     * @return array|Result[]
      */
     public function getResults(): array
     {
@@ -88,51 +82,6 @@ class SearchResponse
         $this->requestID = $requestID;
     }
 
-    public function getTotalCount(): int
-    {
-        return $this->totalCount;
-    }
-
-    public function setTotalCount(int $totalCount): void
-    {
-        $this->totalCount = $totalCount;
-    }
-
-    public function getPage(): int
-    {
-        return $this->page;
-    }
-
-    public function setPage(int $page): void
-    {
-        $this->page = $page;
-    }
-
-    public function getPageSize(): int
-    {
-        return $this->pageSize;
-    }
-
-    public function setPageSize(int $pageSize): void
-    {
-        $this->pageSize = $pageSize;
-    }
-
-    public function getPagesCount(): int
-    {
-        return (int) ceil($this->getTotalCount() / $this->getPageSize());
-    }
-
-    public function getTotalCountHuman(): string
-    {
-        return $this->totalCountHuman;
-    }
-
-    public function setTotalCountHuman(string $totalCountHuman): void
-    {
-        $this->totalCountHuman = $totalCountHuman;
-    }
-
     public function getCorrection(): ?Correction
     {
         return $this->correction;
@@ -141,5 +90,15 @@ class SearchResponse
     public function setCorrection(?Correction $correction): void
     {
         $this->correction = $correction;
+    }
+
+    public function getPagination(): ?Pagination
+    {
+        return $this->pagination;
+    }
+
+    public function setPagination(?Pagination $pagination): void
+    {
+        $this->pagination = $pagination;
     }
 }
