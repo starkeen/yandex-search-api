@@ -16,7 +16,6 @@ class YandexSearchService
     private const YANDEX_SEARCH_URL = 'https://yandex.ru/search/xml';
 
     private Client $httpClient;
-
     private LoggerInterface $logger;
 
     private ?string $apiId = null;
@@ -78,6 +77,7 @@ class YandexSearchService
             throw new SearchException('Yandex search API response parse error', 0, $exception);
         }
 
+        $pagination = new Pagination();
         $xmlResponse = $xml->response;
         $result->setRequestID((string)$xmlResponse->reqid);
 
@@ -93,10 +93,11 @@ class YandexSearchService
             $result->setCorrection($correction);
         }
 
-        $result->setTotalCount((int)($xmlResponse->results->grouping->found[0] ?? 0));
-        $result->setTotalCountHuman((string)$xmlResponse->results->grouping->{'found-docs-human'});
-        $result->setPageSize((int)$xmlResponse->results->grouping->attributes()['groups-on-page']);
-        $result->setPage((int)$xmlResponse->results->grouping->page);
+        $pagination->setTotal((int)($xmlResponse->results->grouping->found[0] ?? 0));
+        $pagination->setTotalHuman((string)$xmlResponse->results->grouping->{'found-docs-human'});
+        $pagination->setPageSize((int)$xmlResponse->results->grouping->attributes()['groups-on-page']);
+        $pagination->setCurrentPage((int)$xmlResponse->results->grouping->page);
+        $result->setPagination($pagination);
 
         foreach ($xml->response->results->grouping->group as $group) {
             foreach ($group->doc as $doc) {
