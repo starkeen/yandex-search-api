@@ -2,7 +2,6 @@
 
 namespace YandexSearchAPI\Tests;
 
-use DOMDocument;
 use PHPUnit\Framework\TestCase;
 use YandexSearchAPI\SearchRequest;
 

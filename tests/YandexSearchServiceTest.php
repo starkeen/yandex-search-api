@@ -8,6 +8,7 @@ use YandexSearchAPI\ConfigurationException;
 use YandexSearchAPI\SearchException;
 use YandexSearchAPI\YandexSearchService;
 
+
 class YandexSearchServiceTest extends AbstractTestCase
 {
     public function testCheckingConfiguration(): void
