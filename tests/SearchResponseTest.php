@@ -2,13 +2,17 @@
 
 namespace YandexSearchAPI\Tests;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use YandexSearchAPI\Correction;
 use YandexSearchAPI\SearchResponse;
 use YandexSearchAPI\SearchRequest;
 use YandexSearchAPI\Result;
 
 class SearchResponseTest extends TestCase
 {
+    private SearchRequest|MockObject $request;
+
     private SearchResponse $searchResponse;
 
     /**
@@ -16,16 +20,19 @@ class SearchResponseTest extends TestCase
      */
     protected function setUp(): void
     {
-        $request = $this->createMock(SearchRequest::class);
-        $this->searchResponse = new SearchResponse($request);
+        $this->request = $this->createMock(SearchRequest::class);
+        $this->searchResponse = new SearchResponse($this->request);
 
+        $this->searchResponse->setRequestID('request_number_987654321');
         $this->searchResponse->appendResult('Title 1', 'URL 1', 'Snippet 1');
         $this->searchResponse->appendResult('Title 2', 'URL 2', 'Snippet 2');
     }
 
-    public function testGetResults(): void
+    public function testGettingResults(): void
     {
         $results = $this->searchResponse->getResults();
+
+        $this->assertSame($this->request, $this->searchResponse->getRequest());
 
         $this->assertIsArray($results);
         $this->assertCount(2, $results);
@@ -38,6 +45,48 @@ class SearchResponseTest extends TestCase
         $this->assertEquals('Title 2', $results[1]->getTitle());
         $this->assertEquals('URL 2', $results[1]->getURL());
         $this->assertEquals('Snippet 2', $results[1]->getSnippet());
-        
+
+        $this->assertEquals('request_number_987654321', $this->searchResponse->getRequestID());
+        $this->assertFalse($this->searchResponse->isError());
+        $this->assertNull($this->searchResponse->getErrorCode());
+        $this->assertNull($this->searchResponse->getCorrection());
+    }
+
+    public function testPagination(): void
+    {
+        $this->searchResponse->setPage(2);
+        $this->searchResponse->setPageSize(20);
+        $this->searchResponse->setTotalCount(12345);
+
+        $this->assertEquals(2, $this->searchResponse->getPage());
+        $this->assertEquals(20, $this->searchResponse->getPageSize());
+        $this->assertEquals(12345, $this->searchResponse->getTotalCount());
+        $this->assertEquals(618, $this->searchResponse->getPagesCount());
+    }
+
+    public function testErrorsHandling(): void
+    {
+        $this->searchResponse->setErrorText('Error text');
+        $this->searchResponse->setErrorCode(123);
+
+        $this->assertTrue($this->searchResponse->isError());
+        $this->assertEquals(123, $this->searchResponse->getErrorCode());
+        $this->assertEquals('Error text', $this->searchResponse->getErrorText());
+    }
+
+    public function testCorrection(): void
+    {
+        $correctionMock = $this->createMock(Correction::class);
+
+        $this->searchResponse->setCorrection($correctionMock);
+
+        $this->assertSame($correctionMock, $this->searchResponse->getCorrection());
+    }
+
+    public function testHumanResultscount(): void
+    {
+        $this->searchResponse->setTotalCountHuman('Found 12345 results');
+
+        $this->assertEquals('Found 12345 results', $this->searchResponse->getTotalCountHuman());
     }
 }

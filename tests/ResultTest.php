@@ -10,7 +10,7 @@ class ResultTest extends TestCase
     public function testResultConstructor(): void
     {
         $title = 'Test Title';
-        $url = 'http://example.com/path?arg=value#anchor';
+        $url = 'https://example.com/path?arg=value#anchor';
         $snippet = 'This is a test snippet.';
 
         $result = new Result($title, $url, $snippet);
@@ -24,7 +24,7 @@ class ResultTest extends TestCase
     public function testResultConstructorWithNullSnippet(): void
     {
         $title = 'Test Title';
-        $url = 'http://example.com/path?arg=value#anchor';
+        $url = 'https://example.com/path?arg=value#anchor';
 
         $result = new Result($title, $url, null);
 
