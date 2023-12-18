@@ -5,6 +5,7 @@ namespace YandexSearchAPI\Tests;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use YandexSearchAPI\Correction;
+use YandexSearchAPI\Pagination;
 use YandexSearchAPI\SearchResponse;
 use YandexSearchAPI\SearchRequest;
 use YandexSearchAPI\Result;
@@ -52,18 +53,6 @@ class SearchResponseTest extends TestCase
         $this->assertNull($this->searchResponse->getCorrection());
     }
 
-    public function testPagination(): void
-    {
-        $this->searchResponse->setPage(2);
-        $this->searchResponse->setPageSize(20);
-        $this->searchResponse->setTotalCount(12345);
-
-        $this->assertEquals(2, $this->searchResponse->getPage());
-        $this->assertEquals(20, $this->searchResponse->getPageSize());
-        $this->assertEquals(12345, $this->searchResponse->getTotalCount());
-        $this->assertEquals(618, $this->searchResponse->getPagesCount());
-    }
-
     public function testErrorsHandling(): void
     {
         $this->searchResponse->setErrorText('Error text');
@@ -83,10 +72,12 @@ class SearchResponseTest extends TestCase
         $this->assertSame($correctionMock, $this->searchResponse->getCorrection());
     }
 
-    public function testHumanResultscount(): void
+    public function testPagination(): void
     {
-        $this->searchResponse->setTotalCountHuman('Found 12345 results');
+        $paginationMock = $this->createMock(Pagination::class);
 
-        $this->assertEquals('Found 12345 results', $this->searchResponse->getTotalCountHuman());
+        $this->searchResponse->setPagination($paginationMock);
+
+        $this->assertSame($paginationMock, $this->searchResponse->getPagination());
     }
 }
