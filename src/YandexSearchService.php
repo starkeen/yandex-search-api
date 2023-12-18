@@ -82,8 +82,7 @@ class YandexSearchService
         $result->setRequestID((string)$xmlResponse->reqid);
 
         if (property_exists($xmlResponse, 'error')) {
-            $result->setErrorText((string)$xmlResponse->error);
-            return $result;
+            throw new SearchException((string)$xmlResponse->error, (int)$xmlResponse->error->attributes()['code']);
         }
 
         if (property_exists($xmlResponse, 'misspell')) {

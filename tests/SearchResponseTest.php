@@ -48,19 +48,7 @@ class SearchResponseTest extends TestCase
         $this->assertEquals('Snippet 2', $results[1]->getSnippet());
 
         $this->assertEquals('request_number_987654321', $this->searchResponse->getRequestID());
-        $this->assertFalse($this->searchResponse->isError());
-        $this->assertNull($this->searchResponse->getErrorCode());
         $this->assertNull($this->searchResponse->getCorrection());
-    }
-
-    public function testErrorsHandling(): void
-    {
-        $this->searchResponse->setErrorText('Error text');
-        $this->searchResponse->setErrorCode(123);
-
-        $this->assertTrue($this->searchResponse->isError());
-        $this->assertEquals(123, $this->searchResponse->getErrorCode());
-        $this->assertEquals('Error text', $this->searchResponse->getErrorText());
     }
 
     public function testCorrection(): void
