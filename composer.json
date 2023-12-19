@@ -1,7 +1,7 @@
 {
   "name": "starkeen/yandex-search-api",
   "description": "Library for using Yandex Search API",
-  "keywords": ["yandex", "api", "search"],
+  "keywords": ["yandex", "api", "search", "client", "HTTP client"],
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -10,10 +10,10 @@
       "email": "starkeen@gmail.com"
     }
   ],
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
   "require": {
     "php": "^8.0",
-    "guzzlehttp/guzzle": "^7.9",
+    "guzzlehttp/guzzle": "^7.8",
     "psr/log": "^3.0",
     "ext-simplexml": "*"
   },
@@ -23,7 +23,7 @@
     }
   },
   "require-dev": {
-    "phpunit/phpunit": "9.6.x",
+    "phpunit/phpunit": "^9.6",
     "phpunit/php-code-coverage": "^9.2"
   },
   "autoload-dev": {
