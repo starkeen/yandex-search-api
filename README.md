@@ -1,8 +1,14 @@
 # yandex-search-api
+
 Library for Yandex Search API
 
+![Packagist Version (custom server)](https://img.shields.io/packagist/v/starkeen/yandex-search-api)
+![Packagist PHP Version Support (specify version)](https://img.shields.io/packagist/php-v/starkeen/yandex-search-api)
+![GitHub](https://img.shields.io/github/license/starkeen/yandex-search-api)
 [![codecov](https://codecov.io/gh/starkeen/yandex-search-api/branch/main/graph/badge.svg)](https://codecov.io/gh/starkeen/yandex-search-api)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=starkeen_yandex-search-api&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=starkeen_yandex-search-api)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/6a91442a3a44406b9d16f7c9c3a2ec24)](https://app.codacy.com/gh/starkeen/yandex-search-api/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
 
 ## Description
 
