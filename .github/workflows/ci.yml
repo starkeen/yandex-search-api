@@ -39,13 +39,35 @@ jobs:
             ./phpunit-coverage.xml
             ./phpunit-report.xml
 
+  phpcs:
+    name: PHP Code Sniffer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Composer install
+        uses: php-actions/composer@v6
+        with:
+          args: --dev
+
+      - name: PHP Code Sniffer
+        uses: php-actions/phpcs@v1
+        with:
+          php_version: 8.0
+          path: src/
+          standard: PSR12
+          report: full
+
   phpstan:
     name: PHPStan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - uses: php-actions/composer@v6
+      - name: Composer install
+        uses: php-actions/composer@v6
+        with:
+          args: --dev
 
       - uses: php-actions/phpstan@v3
         with:
