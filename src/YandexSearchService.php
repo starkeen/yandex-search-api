@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection MethodShouldBeFinalInspection */
+
 declare(strict_types=1);
 
 namespace YandexSearchAPI;
@@ -77,7 +79,6 @@ class YandexSearchService
             throw new SearchException('Yandex search API response parse error', 0, $exception);
         }
 
-        $pagination = new Pagination();
         $xmlResponse = $xml->response;
         $result->setRequestID((string)$xmlResponse->reqid);
 
@@ -92,6 +93,7 @@ class YandexSearchService
             $result->setCorrection($correction);
         }
 
+        $pagination = new Pagination();
         $pagination->setTotal((int)($xmlResponse->results->grouping->found[0] ?? 0));
         $pagination->setTotalHuman((string)$xmlResponse->results->grouping->{'found-docs-human'});
         $pagination->setPageSize((int)$xmlResponse->results->grouping->attributes()['groups-on-page']);
