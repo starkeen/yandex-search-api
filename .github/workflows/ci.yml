@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - analyzers
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -38,8 +39,23 @@ jobs:
             ./phpunit-coverage.xml
             ./phpunit-report.xml
 
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: php-actions/composer@v6
+
+      - uses: php-actions/phpstan@v3
+        with:
+          path: src/
+          php_version: 8.0
+          configuration: phpstan.neon
+          error_format: gitlab
+
   codecov:
-    name: Codecov
+    name: CodeCov
     runs-on: ubuntu-latest
     needs:
       - test
