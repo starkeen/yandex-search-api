@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - analyzers
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -47,8 +46,6 @@ jobs:
 
       - name: Composer install
         uses: php-actions/composer@v6
-        with:
-          args: --dev
 
       - name: PHP Code Sniffer
         uses: php-actions/phpcs@v1
@@ -66,8 +63,6 @@ jobs:
 
       - name: Composer install
         uses: php-actions/composer@v6
-        with:
-          args: --dev
 
       - uses: php-actions/phpstan@v3
         with:
@@ -75,6 +70,25 @@ jobs:
           php_version: 8.0
           configuration: phpstan.neon
           error_format: gitlab
+
+  phpmd:
+    name: PHP Mess Detector
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup PHP environment
+        uses: shivammathur/setup-php@v2
+        with:
+          coverage: none
+          php-version: 8.0
+          tools: phpmd
+
+      - name: Composer install
+        uses: php-actions/composer@v6
+
+      - name: PHP Mess Detector
+        run: phpmd . github phpmd.xml --exclude 'tests/*,vendor/*'
 
   codecov:
     name: CodeCov

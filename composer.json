@@ -23,6 +23,7 @@
     }
   },
   "require-dev": {
+    "phpmd/phpmd": "^2.15",
     "phpstan/phpstan": "^1.10",
     "phpunit/php-code-coverage": "^9.2",
     "phpunit/phpunit": "^9.6",
