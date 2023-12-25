@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace YandexSearchAPI;
 
+use YandexSearchAPI\dto\ResultsCollection;
+
 class SearchResponse
 {
     private SearchRequest $request;
 
-    /**
-     * @var Result[]
-     */
-    private array $results;
+    private ?ResultsCollection $resultsCollection = null;
 
     private ?Pagination $pagination = null;
 
@@ -22,7 +21,6 @@ class SearchResponse
     public function __construct(SearchRequest $request)
     {
         $this->request = $request;
-        $this->results = [];
     }
 
     public function getRequest(): SearchRequest
@@ -30,17 +28,12 @@ class SearchResponse
         return $this->request;
     }
 
-    public function appendResult(string $title, string $url, string $snippet): void
-    {
-        $this->results[] = new Result($title, $url, $snippet);
-    }
-
     /**
      * @return array|Result[]
      */
     public function getResults(): array
     {
-        return $this->results;
+        return $this->resultsCollection !== null ? $this->resultsCollection->getResults() : [];
     }
 
     public function getRequestID(): string
@@ -71,5 +64,10 @@ class SearchResponse
     public function setPagination(?Pagination $pagination): void
     {
         $this->pagination = $pagination;
+    }
+
+    public function setResultsCollection(ResultsCollection $resultsCollection): void
+    {
+        $this->resultsCollection = $resultsCollection;
     }
 }
