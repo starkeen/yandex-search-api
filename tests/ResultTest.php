@@ -4,6 +4,7 @@ namespace YandexSearchAPI\Tests;
 
 use PHPUnit\Framework\TestCase;
 use YandexSearchAPI\Result;
+use YandexSearchAPI\SearchException;
 
 class ResultTest extends TestCase
 {
@@ -15,21 +16,35 @@ class ResultTest extends TestCase
 
         $result = new Result($title, $url, $snippet);
 
-        $this->assertEquals($title, $result->getTitle(), 'Constructor doesn\'t set title properly');
-        $this->assertEquals($url, $result->getURL(), 'Constructor doesn\'t set URL properly');
-        $this->assertEquals('example.com', $result->getDomain(), 'Fetching domain doesn\'t work properly');
-        $this->assertEquals($snippet, $result->getSnippet(), 'Constructor doesn\'t set snippet properly');
+        $this->assertEquals($title, $result->getTitle());
+        $this->assertEquals($url, $result->getURL());
+        $this->assertEquals('example.com', $result->getDomain());
+        $this->assertEquals($snippet, $result->getSnippet());
     }
 
-    public function testResultConstructorWithNullSnippet(): void
+    public function testResultWithNullSnippet(): void
     {
         $title = 'Test Title';
         $url = 'https://example.com/path?arg=value#anchor';
 
         $result = new Result($title, $url, null);
 
-        $this->assertEquals($title, $result->getTitle(), "Constructor doesn't set title properly.");
-        $this->assertEquals($url, $result->getURL(), "Constructor doesn't set URL properly.");
-        $this->assertNull($result->getSnippet(), "Constructor should handle null snippet values.");
+        $this->assertEquals($title, $result->getTitle());
+        $this->assertEquals($url, $result->getURL());
+        $this->assertNull($result->getSnippet());
+    }
+
+    public function testResultWithWrongDomain(): void
+    {
+        $title = 'Test Title';
+        $url = 'https://';
+
+        $result = new Result($title, $url, null);
+
+        $this->assertEquals($title, $result->getTitle());
+        $this->assertEquals($url, $result->getURL());
+
+        $this->expectException(SearchException::class);
+        $result->getDomain();
     }
 }

@@ -8,10 +8,11 @@ namespace YandexSearchAPI;
 
 use Exception;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\RequestOptions;
 use Psr\Log\LoggerInterface;
-use SimpleXMLElement;
+use Throwable;
+use YandexSearchAPI\parser\ResultsParser;
+use YandexSearchAPI\xml\ResponseRoot;
 
 class YandexSearchService
 {
@@ -23,19 +24,25 @@ class YandexSearchService
     private ?string $apiId = null;
     private ?string $apiKey = null;
 
+    /**
+     * @param Client $client
+     * @param LoggerInterface $logger
+     */
     public function __construct(Client $client, LoggerInterface $logger)
     {
         $this->httpClient = $client;
         $this->logger = $logger;
     }
 
+    /**
+     * @param SearchRequest $request
+     * @return SearchResponse
+     */
     public function search(SearchRequest $request): SearchResponse
     {
         if ($this->apiId === null || $this->apiKey === null) {
             throw new ConfigurationException('API ID and API key must be set');
         }
-
-        $result = new SearchResponse($request);
 
         try {
             $rawResponse = $this->httpClient->post(
@@ -43,9 +50,9 @@ class YandexSearchService
                 [
                     RequestOptions::QUERY => [
                         'folderid' => $this->apiId,
-                        'l10n' => 'ru',
-                        'sortby' => 'rlv',
-                        'filter' => 'none',
+                        'l10n' => $request->getLanguage(),
+                        'sortby' => $request->getSort(),
+                        'filter' => $request->getFilter(),
                     ],
                     RequestOptions::BODY => $request->getXML(),
                     RequestOptions::HEADERS => [
@@ -54,7 +61,7 @@ class YandexSearchService
                     ],
                 ]
             );
-        } catch (TransferException $exception) {
+        } catch (Throwable $exception) {
             $this->logger->error(
                 'Yandex search API error',
                 [
@@ -67,7 +74,7 @@ class YandexSearchService
         }
 
         try {
-            $xml = new SimpleXMLElement($rawResponse->getBody()->getContents());
+            $xml = new ResponseRoot($rawResponse->getBody()->getContents());
         } catch (Exception $exception) {
             $this->logger->error(
                 'Yandex search API response parse error',
@@ -79,46 +86,24 @@ class YandexSearchService
             throw new SearchException('Yandex search API response parse error', 0, $exception);
         }
 
-        $xmlResponse = $xml->response;
-        $result->setRequestID((string)$xmlResponse->reqid);
+        $xmlResponse = $xml->getResponse();
 
-        if (property_exists($xmlResponse, 'error')) {
-            throw new SearchException((string)$xmlResponse->error, (int)$xmlResponse->error->attributes()['code']);
-        }
-
-        if (property_exists($xmlResponse, 'misspell')) {
-            $misspell = $xmlResponse->misspell;
-            $sourceText = strip_tags($misspell->{'source-text'}->saveXML());
-            $correction = new Correction($sourceText, (string)$misspell->text);
-            $result->setCorrection($correction);
-        }
-
-        $pagination = new Pagination();
-        $pagination->setTotal((int)($xmlResponse->results->grouping->found[0] ?? 0));
-        $pagination->setTotalHuman((string)$xmlResponse->results->grouping->{'found-docs-human'});
-        $pagination->setPageSize((int)$xmlResponse->results->grouping->attributes()['groups-on-page']);
-        $pagination->setCurrentPage((int)$xmlResponse->results->grouping->page);
-        $result->setPagination($pagination);
-
-        foreach ($xml->response->results->grouping->group as $group) {
-            foreach ($group->doc as $doc) {
-                $passage = $doc->passages->passage;
-                $result->appendResult(
-                    strip_tags($doc->title->saveXML()),
-                    (string)$doc->url,
-                    $passage !== null ? strip_tags($passage->saveXML()) : ''
-                );
-            }
-        }
-
-        return $result;
+        return (new ResultsParser())->parse($request, $xmlResponse);
     }
 
+    /**
+     * @param string $apiId
+     * @return void
+     */
     public function setApiId(string $apiId): void
     {
         $this->apiId = $apiId;
     }
 
+    /**
+     * @param string $apiKey
+     * @return void
+     */
     public function setApiKey(string $apiKey): void
     {
         $this->apiKey = $apiKey;

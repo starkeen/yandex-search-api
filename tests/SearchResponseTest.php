@@ -5,6 +5,7 @@ namespace YandexSearchAPI\Tests;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use YandexSearchAPI\Correction;
+use YandexSearchAPI\dto\ResultsCollection;
 use YandexSearchAPI\Pagination;
 use YandexSearchAPI\SearchResponse;
 use YandexSearchAPI\SearchRequest;
@@ -12,9 +13,21 @@ use YandexSearchAPI\Result;
 
 class SearchResponseTest extends TestCase
 {
-    private SearchRequest|MockObject $request;
+    /**
+     * @var MockObject|SearchRequest|null
+     */
+    private SearchRequest|MockObject|null $request = null;
 
-    private SearchResponse $searchResponse;
+    /**
+     * @var MockObject|ResultsCollection|null
+     */
+    private ResultsCollection|MockObject|null $resultCollectionMock = null;
+
+    /**
+     * @var SearchResponse|null
+     */
+    private ?SearchResponse $searchResponse = null;
+
 
     /**
      * This method is called before each test.
@@ -22,15 +35,24 @@ class SearchResponseTest extends TestCase
     protected function setUp(): void
     {
         $this->request = $this->createMock(SearchRequest::class);
-        $this->searchResponse = new SearchResponse($this->request);
+        $this->resultCollectionMock = $this->getMockBuilder(ResultsCollection::class)
+            ->onlyMethods(['getResults'])
+            ->getMock();
 
+        $this->searchResponse = new SearchResponse($this->request);
+        $this->searchResponse->setResultsCollection($this->resultCollectionMock);
         $this->searchResponse->setRequestID('request_number_987654321');
-        $this->searchResponse->appendResult('Title 1', 'URL 1', 'Snippet 1');
-        $this->searchResponse->appendResult('Title 2', 'URL 2', 'Snippet 2');
     }
 
     public function testGettingResults(): void
     {
+        $this->resultCollectionMock->expects($this->once())
+            ->method('getResults')
+            ->willReturn([
+                new Result('Title 1', 'URL 1', 'Snippet 1'),
+                new Result('Title 2', 'URL 2', 'Snippet 2'),
+            ]);
+
         $results = $this->searchResponse->getResults();
 
         $this->assertSame($this->request, $this->searchResponse->getRequest());
