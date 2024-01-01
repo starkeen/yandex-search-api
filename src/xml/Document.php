@@ -25,7 +25,7 @@ class Document extends SimpleXMLElement
     {
         $passages = [];
 
-        foreach ($this->passages->passage as $passage) {
+        foreach ($this->passages->passage ?? [] as $passage) {
             $passages[] = new Passage($passage->asXML());
         }
 
