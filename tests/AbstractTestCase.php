@@ -4,53 +4,46 @@ declare(strict_types=1);
 
 namespace YandexSearchAPI\Tests;
 
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Psr7\Stream;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Nyholm\Psr7\Response;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerInterface;
 use YandexSearchAPI\SearchRequest;
 
 abstract class AbstractTestCase extends TestCase
 {
-    protected function getHttpClientMock(): ClientInterface|MockObject
+    protected function getHttpClientMock(): ClientInterface&MockObject
     {
         return $this->createMock(ClientInterface::class);
     }
 
-    protected function getHttpResponseMock(): Response|MockObject
+    protected function getHttpFactory(): RequestFactoryInterface&StreamFactoryInterface
     {
-        return $this->getMockBuilder(Response::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getBody', 'getStatusCode'])
-            ->getMock();
+        return new Psr17Factory();
     }
 
-    protected function getHttpResponseBodyMock(): Stream|MockObject
+    protected function getHttpResponseMock(string $body): Response
     {
-        return $this->getMockBuilder(Stream::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getContents'])
-            ->getMock();
+        return new Response(200, [], $body);
     }
 
-    protected function getHttpResponseClientExceptionMock(): ClientException|MockObject
+    protected function getHttpTransportException(): \Psr\Http\Client\ClientExceptionInterface
     {
-        return $this->getMockBuilder(ClientException::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        return new class extends \RuntimeException implements \Psr\Http\Client\ClientExceptionInterface {};
     }
 
-    protected function getLoggerMock(): LoggerInterface|MockObject
+    protected function getLoggerMock(): LoggerInterface&MockObject
     {
         return $this->getMockBuilder(LoggerInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
     }
 
-    protected function getRequestMock(): SearchRequest|MockObject
+    protected function getRequestMock(): SearchRequest&MockObject
     {
         return $this->getMockBuilder(SearchRequest::class)
             ->disableOriginalConstructor()

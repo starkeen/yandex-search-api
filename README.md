@@ -22,7 +22,9 @@ queries.
 
 * PHP 8.1 or higher
 * `ext-simplexml`
-* A [Guzzle](https://github.com/guzzle/guzzle) HTTP client (`guzzlehttp/guzzle: ^7.8`)
+* `ext-libxml`
+* A PSR-18 HTTP client (`psr/http-client: ^1.0`)
+* A PSR-17 HTTP factory implementing both `RequestFactoryInterface` and `StreamFactoryInterface` (`psr/http-factory: ^1.0`)
 * A PSR-3 logger (`psr/log: ^3.0`)
 
 ## Installation
@@ -47,16 +49,21 @@ use YandexSearchAPI\SearchException;
 use YandexSearchAPI\SearchRequest;
 use YandexSearchAPI\YandexSearchService;
 
-// Create a Guzzle client instance (any GuzzleHttp\ClientInterface implementation)
-$httpClient = new \GuzzleHttp\Client();
+// Any PSR-17 factory that implements both RequestFactoryInterface and StreamFactoryInterface.
+// Popular choices: Nyholm\Psr7\Factory\Psr17Factory, Laminas\Diactoros\RequestFactory, etc.
+$factory = new \Nyholm\Psr7\Factory\Psr17Factory();
 
-// Create a logger instance (any PSR-3 LoggerInterface implementation)
+// Any PSR-18 HTTP client.
+// Popular choices: Symfony\Component\HttpClient\Psr18Client, Guzzle 7+ (implements PSR-18), etc.
+$httpClient = new \Symfony\Component\HttpClient\Psr18Client();
+
+// Any PSR-3 logger.
 $logger = new \Psr\Log\NullLogger();
 
 // Initialize the service with your credentials:
 //   - Folder ID from your Yandex Cloud account
 //   - API key from your Yandex Cloud account
-$service = new YandexSearchService($httpClient, $logger, 'abcdefg', 'A1B2C3D4');
+$service = new YandexSearchService($httpClient, $factory, $logger, 'abcdefg', 'A1B2C3D4');
 
 // Your search query
 $searchRequest = new SearchRequest('Кому на Руси жить хорошо?');
@@ -86,7 +93,7 @@ The recommended way is to pass the credentials to the constructor (store them in
 a configuration file / environment variables rather than hard-coding them):
 
 ```php
-$service = new YandexSearchService($httpClient, $logger, 'abcdefg', 'A1B2C3D4');
+$service = new YandexSearchService($httpClient, $factory, $logger, 'abcdefg', 'A1B2C3D4');
 ```
 
 > The `setApiId()` / `setApiKey()` setters are still available but **deprecated**

@@ -7,8 +7,9 @@ declare(strict_types=1);
 namespace YandexSearchAPI;
 
 use Exception;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\RequestOptions;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 use YandexSearchAPI\parser\ResultsParser;
@@ -19,6 +20,8 @@ class YandexSearchService
     private const YANDEX_SEARCH_URL = 'https://yandex.ru/search/xml';
 
     private ClientInterface $httpClient;
+    /** @var RequestFactoryInterface&StreamFactoryInterface */
+    private RequestFactoryInterface $factory;
     private LoggerInterface $logger;
 
     private ?string $apiId;
@@ -26,17 +29,20 @@ class YandexSearchService
 
     /**
      * @param ClientInterface $client
+     * @param RequestFactoryInterface&StreamFactoryInterface $factory
      * @param LoggerInterface $logger
      * @param string|null $apiId  Folder ID from your Yandex Cloud account
      * @param string|null $apiKey API key from your Yandex Cloud account
      */
     public function __construct(
         ClientInterface $client,
+        RequestFactoryInterface&StreamFactoryInterface $factory,
         LoggerInterface $logger,
         ?string $apiId = null,
         ?string $apiKey = null
     ) {
         $this->httpClient = $client;
+        $this->factory = $factory;
         $this->logger = $logger;
         $this->apiId = $apiId;
         $this->apiKey = $apiKey;
@@ -52,24 +58,20 @@ class YandexSearchService
             throw new ConfigurationException('API ID and API key must be set');
         }
 
+        $uri = self::YANDEX_SEARCH_URL . '?' . http_build_query([
+            'folderid' => $this->apiId,
+            'l10n'     => $request->getLanguage(),
+            'sortby'   => $request->getSort(),
+            'filter'   => $request->getFilter(),
+        ]);
+
+        $psrRequest = $this->factory->createRequest('POST', $uri)
+            ->withHeader('Content-Type', 'application/xml')
+            ->withHeader('Authorization', 'Api-Key ' . $this->apiKey)
+            ->withBody($this->factory->createStream($request->getXML()));
+
         try {
-            $rawResponse = $this->httpClient->request(
-                'POST',
-                self::YANDEX_SEARCH_URL,
-                [
-                    RequestOptions::QUERY => [
-                        'folderid' => $this->apiId,
-                        'l10n' => $request->getLanguage(),
-                        'sortby' => $request->getSort(),
-                        'filter' => $request->getFilter(),
-                    ],
-                    RequestOptions::BODY => $request->getXML(),
-                    RequestOptions::HEADERS => [
-                        'Content-Type' => 'application/xml',
-                        'Authorization' => 'Api-Key ' . $this->apiKey,
-                    ],
-                ]
-            );
+            $rawResponse = $this->httpClient->sendRequest($psrRequest);
         } catch (Throwable $exception) {
             $this->logger->error(
                 'Yandex search API error',
@@ -80,6 +82,12 @@ class YandexSearchService
             );
 
             throw new SearchException('Yandex search API error', 0, $exception);
+        }
+
+        if ($rawResponse->getStatusCode() >= 400) {
+            throw new SearchException(
+                'Yandex search API returned HTTP ' . $rawResponse->getStatusCode()
+            );
         }
 
         $previousXmlErrorMode = libxml_use_internal_errors(true);
