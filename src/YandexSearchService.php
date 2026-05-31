@@ -7,7 +7,6 @@ declare(strict_types=1);
 namespace YandexSearchAPI;
 
 use Exception;
-use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -73,7 +72,7 @@ class YandexSearchService
 
         try {
             $rawResponse = $this->httpClient->sendRequest($psrRequest);
-        } catch (ClientExceptionInterface | Throwable $exception) {
+        } catch (Throwable $exception) {
             $this->logger->error(
                 'Yandex search API error',
                 [
