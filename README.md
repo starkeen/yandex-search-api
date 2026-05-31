@@ -22,6 +22,7 @@ queries.
 
 * PHP 8.1 or higher
 * `ext-simplexml`
+* `ext-libxml`
 * A [Guzzle](https://github.com/guzzle/guzzle) HTTP client (`guzzlehttp/guzzle: ^7.8`)
 * A PSR-3 logger (`psr/log: ^3.0`)
 
