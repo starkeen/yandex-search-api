@@ -84,6 +84,12 @@ class YandexSearchService
             throw new SearchException('Yandex search API error', 0, $exception);
         }
 
+        if ($rawResponse->getStatusCode() >= 400) {
+            throw new SearchException(
+                'Yandex search API returned HTTP ' . $rawResponse->getStatusCode()
+            );
+        }
+
         $previousXmlErrorMode = libxml_use_internal_errors(true);
 
         try {

@@ -54,8 +54,8 @@ use YandexSearchAPI\YandexSearchService;
 $factory = new \Nyholm\Psr7\Factory\Psr17Factory();
 
 // Any PSR-18 HTTP client.
-// Popular choices: GuzzleHttp\Client, Symfony\Component\HttpClient\Psr18Client, etc.
-$httpClient = new \GuzzleHttp\Client();
+// Popular choices: Symfony\Component\HttpClient\Psr18Client, Guzzle 7+ (implements PSR-18), etc.
+$httpClient = new \Symfony\Component\HttpClient\Psr18Client();
 
 // Any PSR-3 logger.
 $logger = new \Psr\Log\NullLogger();
