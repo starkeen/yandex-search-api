@@ -39,10 +39,16 @@ class ResultsParser
             $result->setCorrection($correction);
         }
 
-        $result->setPagination($this->buildPagination($response->getResults()->getGrouping()));
+        $results = $response->getResults();
+        if ($results === null) {
+            return $result;
+        }
+
+        $grouping = $results->getGrouping();
+        $result->setPagination($this->buildPagination($grouping));
 
         $collection = new ResultsCollection();
-        foreach ($response->getResults()->getGrouping()->getGroups() as $group) {
+        foreach ($grouping->getGroups() as $group) {
             foreach ($group->getDocuments() as $doc) {
                 $passages = $doc->getPassages();
 

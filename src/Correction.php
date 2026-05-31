@@ -35,6 +35,9 @@ class Correction
     }
 
     /**
+     * @deprecated since 2.0, Correction is immutable; pass the value to the
+     *             constructor instead.
+     *
      * @param string $sourceText
      * @return void
      */
@@ -52,6 +55,9 @@ class Correction
     }
 
     /**
+     * @deprecated since 2.0, Correction is immutable; pass the value to the
+     *             constructor instead.
+     *
      * @param string $resultText
      * @return void
      */

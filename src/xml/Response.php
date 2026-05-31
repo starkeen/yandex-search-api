@@ -29,22 +29,26 @@ class Response extends SimpleXMLElement
     }
 
     /**
-     * @return Mispelling|null
+     * @return Misspelling|null
      */
-    public function getMisspelling(): ?Mispelling
+    public function getMisspelling(): ?Misspelling
     {
         if (isset($this->misspell)) {
-            return new Mispelling($this->misspell->asXML());
+            return new Misspelling($this->misspell->asXML());
         }
 
         return null;
     }
 
     /**
-     * @return Results
+     * @return Results|null
      */
-    public function getResults(): Results
+    public function getResults(): ?Results
     {
-        return new Results($this->results->asXML());
+        if (isset($this->results)) {
+            return new Results($this->results->asXML());
+        }
+
+        return null;
     }
 }

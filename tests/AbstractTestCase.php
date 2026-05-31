@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace YandexSearchAPI\Tests;
 
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Stream;
@@ -15,12 +15,9 @@ use YandexSearchAPI\SearchRequest;
 
 abstract class AbstractTestCase extends TestCase
 {
-    protected function getHttpClientMock(): Client|MockObject
+    protected function getHttpClientMock(): ClientInterface|MockObject
     {
-        return $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['post'])
-            ->getMock();
+        return $this->createMock(ClientInterface::class);
     }
 
     protected function getHttpResponseMock(): Response|MockObject
@@ -127,6 +124,66 @@ abstract class AbstractTestCase extends TestCase
          </group>
       </grouping>
    </results>
+</response>
+</yandexsearch>
+XML;
+    }
+
+    protected function getMultiGroupResponseXML(): string
+    {
+        return <<<XML
+<?xml version="1.0" encoding="utf-8"?>
+<yandexsearch version="1.0">
+<request>
+   <query>yandex</query>
+   <page>0</page>
+</request>
+<response date="20120928T103130">
+   <reqid>req-multi</reqid>
+   <results>
+      <grouping attr="d" mode="flat" groups-on-page="10" docs-in-group="1">
+         <found priority="all">2</found>
+         <found-docs-human>нашёл 2 ответа</found-docs-human>
+         <page first="1" last="10">0</page>
+         <group>
+            <doccount>1</doccount>
+            <doc id="d1">
+               <url>https://example.com/first</url>
+               <title>First <hlword>doc</hlword></title>
+               <passages>
+                  <passage>first <hlword>passage</hlword></passage>
+                  <passage>second passage</passage>
+               </passages>
+            </doc>
+         </group>
+         <group>
+            <doccount>1</doccount>
+            <doc id="d2">
+               <url>https://example.org/second</url>
+               <title>Second doc</title>
+               <passages>
+                  <passage>only passage</passage>
+               </passages>
+            </doc>
+         </group>
+      </grouping>
+   </results>
+</response>
+</yandexsearch>
+XML;
+    }
+
+    protected function getNoResultsResponseXML(): string
+    {
+        return <<<XML
+<?xml version="1.0" encoding="utf-8"?>
+<yandexsearch version="1.0">
+<request>
+   <query>yandex</query>
+   <page>0</page>
+</request>
+<response date="20120928T103130">
+   <reqid>1348828873568466-1289158387737177180255457-3-011-XML</reqid>
 </response>
 </yandexsearch>
 XML;

@@ -12,7 +12,18 @@ Library for Yandex Search API
 
 ## Description
 
-This library is a convenient way to interact with the Yandex Search API. It allows for easy integration of Yandex search functionality into your PHP projects. The library encapsulates the complex logic of interacting with the API and provides a simple and understandable interface for executing search queries.
+This library is a convenient way to interact with the Yandex Search API (the XML
+interface). It allows for easy integration of Yandex search functionality into
+your PHP projects. The library encapsulates the complex logic of interacting with
+the API and provides a simple and understandable interface for executing search
+queries.
+
+## Requirements
+
+* PHP 8.1 or higher
+* `ext-simplexml`
+* A [Guzzle](https://github.com/guzzle/guzzle) HTTP client (`guzzlehttp/guzzle: ^7.8`)
+* A PSR-3 logger (`psr/log: ^3.0`)
 
 ## Installation
 
@@ -32,31 +43,32 @@ You can get it on the [Yandex Search API](https://console.cloud.yandex.ru/) page
 
 require_once 'vendor/autoload.php';
 
-use YandexSearch\SearchException;
-use YandexSearch\SearchRequest;
-use YandexSearch\YandexSearchService;
+use YandexSearchAPI\SearchException;
+use YandexSearchAPI\SearchRequest;
+use YandexSearchAPI\YandexSearchService;
 
-// Create a guzzlehttp client instance
+// Create a Guzzle client instance (any GuzzleHttp\ClientInterface implementation)
 $httpClient = new \GuzzleHttp\Client();
 
-// Create a logger instance (any of LoggerInterface implementations)
+// Create a logger instance (any PSR-3 LoggerInterface implementation)
 $logger = new \Psr\Log\NullLogger();
 
-// Initialize the client with your API key
-$client = new YandexSearchService($httpClient, $logger);
-$client->setApiId('abcdefg'); // Folder ID from your Yandex Cloud account
-$client->setApiKey('A1B2C3D4'); // API key from your Yandex Cloud account
+// Initialize the service with your credentials:
+//   - Folder ID from your Yandex Cloud account
+//   - API key from your Yandex Cloud account
+$service = new YandexSearchService($httpClient, $logger, 'abcdefg', 'A1B2C3D4');
 
 // Your search query
-$query = 'Кому на Руси жить хорошо?';
-$searchRequest = new SearchRequest($query);
+$searchRequest = new SearchRequest('Кому на Руси жить хорошо?');
 
 try {
-    $response = $client->search($searchRequest);
+    $response = $service->search($searchRequest);
+
     // Process the results
     foreach ($response->getResults() as $result) {
         echo 'Title: ' . $result->getTitle() . PHP_EOL;
         echo 'URL: ' . $result->getUrl() . PHP_EOL;
+        echo 'Domain: ' . $result->getDomain() . PHP_EOL;
         echo 'Snippet: ' . $result->getSnippet() . PHP_EOL;
     }
 } catch (SearchException $e) {
@@ -65,17 +77,89 @@ try {
 ```
 
 ## Configuration
-To use the library, you need to provide your Yandex Search API key and your account ID.
-You can obtain it by registering your application on the [Yandex Cloud Console](https://console.cloud.yandex.ru/).
 
-You can set the API key in the code as follows:
+To use the library, you need to provide your Yandex Search API key and your
+account (folder) ID. You can obtain them by registering your application on the
+[Yandex Cloud Console](https://console.cloud.yandex.ru/).
+
+The recommended way is to pass the credentials to the constructor (store them in
+a configuration file / environment variables rather than hard-coding them):
 
 ```php
-$client = new YandexSearchService($httpClient, $logger);
-$client->setApiId('abcdefg'); // Folder ID from your Yandex Cloud account
-$client->setApiKey('A1B2C3D4'); // API key from your Yandex Cloud account
+$service = new YandexSearchService($httpClient, $logger, 'abcdefg', 'A1B2C3D4');
 ```
-It is also recommended to store the key in a configuration file and use it when creating an instance of the client.
+
+> The `setApiId()` / `setApiKey()` setters are still available but **deprecated**
+> since 2.0 — prefer constructor injection.
+
+If credentials are not provided, `search()` throws a
+`YandexSearchAPI\ConfigurationException`.
+
+## Tuning the request
+
+`SearchRequest` exposes setters to control the query:
+
+```php
+use YandexSearchAPI\SearchRequest;
+use YandexSearchAPI\constant\Filter;
+use YandexSearchAPI\constant\Language;
+use YandexSearchAPI\constant\Sort;
+
+$request = new SearchRequest('php');
+
+$request->setNumResults(20);            // results per page (default 10)
+$request->setPage(1);                   // page number, starting from 0
+$request->setMaxPassages(5);            // passages per document (default 4)
+$request->setLanguage(Language::ENGLISH); // RUSSIAN (default) | ENGLISH | TURKISH
+$request->setSort(Sort::DATE);          // RELEVANCE (default) | DATE
+$request->setFilter(Filter::STRICT);    // NONE (default) | MODERATE | STRICT
+```
+
+Passing a value outside the allowed enum to `setLanguage()`, `setSort()` or
+`setFilter()` throws a `YandexSearchAPI\ConfigurationException`.
+
+## Working with the response
+
+`search()` returns a `YandexSearchAPI\SearchResponse`:
+
+```php
+$response = $service->search($request);
+
+$response->getRequestID();   // string — Yandex request id
+
+foreach ($response->getResults() as $result) {
+    $result->getTitle();     // string
+    $result->getUrl();       // string
+    $result->getDomain();    // string — host extracted from the URL
+    $result->getSnippet();   // string|null
+}
+
+// Pagination (null when the response contains no results)
+$pagination = $response->getPagination();
+if ($pagination !== null) {
+    $pagination->getTotal();       // int|null   — total documents found
+    $pagination->getTotalHuman();  // string|null — human-readable count
+    $pagination->getCurrentPage(); // int|null
+    $pagination->getPageSize();    // int|null
+    $pagination->getPagesCount();  // int — total pages (0 if unknown)
+}
+
+// Spelling correction (null when Yandex did not suggest one)
+$correction = $response->getCorrection();
+if ($correction !== null) {
+    $correction->getSourceText(); // string — the original query
+    $correction->getResultText(); // string — the corrected query
+}
+```
+
+## Error handling
+
+| Exception                                | When it is thrown                                                                 |
+|------------------------------------------|-----------------------------------------------------------------------------------|
+| `YandexSearchAPI\ConfigurationException` | Missing credentials, or an invalid language / sort / filter value.                |
+| `YandexSearchAPI\SearchException`        | Transport error, malformed XML, or an error reported by the API (e.g. code `15`). |
+
+Both exceptions extend `\RuntimeException`.
 
 ## Questions and Feedback
 If you have questions, issues, or suggestions for improvement,

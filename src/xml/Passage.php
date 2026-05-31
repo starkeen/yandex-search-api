@@ -13,6 +13,6 @@ class Passage extends SimpleXMLElement
         $xml = (string)$this->asXML();
         $text = html_entity_decode($xml, ENT_QUOTES, 'UTF-8');
 
-        return strip_tags($text);
+        return trim(strip_tags($text));
     }
 }

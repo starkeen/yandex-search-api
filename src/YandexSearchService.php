@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace YandexSearchAPI;
 
 use Exception;
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\RequestOptions;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -18,20 +18,28 @@ class YandexSearchService
 {
     private const YANDEX_SEARCH_URL = 'https://yandex.ru/search/xml';
 
-    private Client $httpClient;
+    private ClientInterface $httpClient;
     private LoggerInterface $logger;
 
-    private ?string $apiId = null;
-    private ?string $apiKey = null;
+    private ?string $apiId;
+    private ?string $apiKey;
 
     /**
-     * @param Client $client
+     * @param ClientInterface $client
      * @param LoggerInterface $logger
+     * @param string|null $apiId  Folder ID from your Yandex Cloud account
+     * @param string|null $apiKey API key from your Yandex Cloud account
      */
-    public function __construct(Client $client, LoggerInterface $logger)
-    {
+    public function __construct(
+        ClientInterface $client,
+        LoggerInterface $logger,
+        ?string $apiId = null,
+        ?string $apiKey = null
+    ) {
         $this->httpClient = $client;
         $this->logger = $logger;
+        $this->apiId = $apiId;
+        $this->apiKey = $apiKey;
     }
 
     /**
@@ -45,7 +53,8 @@ class YandexSearchService
         }
 
         try {
-            $rawResponse = $this->httpClient->post(
+            $rawResponse = $this->httpClient->request(
+                'POST',
                 self::YANDEX_SEARCH_URL,
                 [
                     RequestOptions::QUERY => [
@@ -73,6 +82,8 @@ class YandexSearchService
             throw new SearchException('Yandex search API error', 0, $exception);
         }
 
+        $previousXmlErrorMode = libxml_use_internal_errors(true);
+
         try {
             $xml = new ResponseRoot($rawResponse->getBody()->getContents());
         } catch (Exception $exception) {
@@ -84,6 +95,9 @@ class YandexSearchService
             );
 
             throw new SearchException('Yandex search API response parse error', 0, $exception);
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previousXmlErrorMode);
         }
 
         $xmlResponse = $xml->getResponse();
@@ -92,6 +106,8 @@ class YandexSearchService
     }
 
     /**
+     * @deprecated since 2.0, pass the Folder ID to the constructor instead.
+     *
      * @param string $apiId
      * @return void
      */
@@ -101,6 +117,8 @@ class YandexSearchService
     }
 
     /**
+     * @deprecated since 2.0, pass the API key to the constructor instead.
+     *
      * @param string $apiKey
      * @return void
      */
