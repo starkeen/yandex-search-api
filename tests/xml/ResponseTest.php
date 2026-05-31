@@ -22,4 +22,11 @@ class ResponseTest extends TestCase
 
         $this->assertNull($xml->getMisspelling());
     }
+
+    public function testGetResultsReturnsNullWhenAbsent(): void
+    {
+        $xml = new Response('<response><reqid>bar</reqid></response>');
+
+        $this->assertNull($xml->getResults());
+    }
 }

@@ -54,6 +54,10 @@ class Pagination
 
     public function getPagesCount(): int
     {
+        if ($this->total === null || empty($this->pageSize)) {
+            return 0;
+        }
+
         return (int)ceil($this->total / $this->pageSize);
     }
 }

@@ -4,17 +4,10 @@ declare(strict_types=1);
 
 namespace YandexSearchAPI\xml;
 
-use SimpleXMLElement;
-
-class Mispelling extends SimpleXMLElement
+/**
+ * @deprecated since 2.0, use {@see Misspelling} instead. This misspelled
+ *             alias is kept for backward compatibility and will be removed.
+ */
+class Mispelling extends Misspelling
 {
-    public function getSourceText(): string
-    {
-        return strip_tags($this->{'source-text'}->saveXML());
-    }
-
-    public function getResultText(): string
-    {
-        return strip_tags($this->{'text'}->saveXML());
-    }
 }

@@ -57,7 +57,6 @@ class SearchResponseTest extends TestCase
 
         $this->assertSame($this->request, $this->searchResponse->getRequest());
 
-        $this->assertIsArray($results);
         $this->assertCount(2, $results);
         $this->assertInstanceOf(Result::class, $results[0]);
         $this->assertEquals('Title 1', $results[0]->getTitle());

@@ -11,7 +11,7 @@ use YandexSearchAPI\SearchRequest;
 
 class SearchRequestTest extends TestCase
 {
-    private ?SearchRequest $request;
+    private SearchRequest $request;
 
     protected function setUp(): void
     {

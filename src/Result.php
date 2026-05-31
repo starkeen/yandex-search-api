@@ -56,7 +56,7 @@ class Result
     public function getDomain(): string
     {
         $host = parse_url($this->url, PHP_URL_HOST);
-        if ($host === false) {
+        if ($host === false || $host === null) {
             throw new SearchException('Invalid URL in response');
         }
 

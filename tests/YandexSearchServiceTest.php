@@ -23,10 +23,29 @@ class YandexSearchServiceTest extends AbstractTestCase
         $service->search($request);
     }
 
+    public function testCredentialsCanBeProvidedViaConstructor(): void
+    {
+        $responseBody = $this->getHttpResponseBodyMock();
+        $responseBody->method('getContents')->willReturn($this->getFullResponseXML());
+
+        $httpResponse = $this->getHttpResponseMock();
+        $httpResponse->method('getBody')->willReturn($responseBody);
+
+        $httpClient = $this->getHttpClientMock();
+        $httpClient->method('request')->willReturn($httpResponse);
+
+        $service = new YandexSearchService($httpClient, $this->getLoggerMock(), '123', '456');
+
+        // no setApiId()/setApiKey() calls — credentials come from the constructor
+        $result = $service->search($this->getRequestMock());
+
+        $this->assertEquals('1348828873568466-1289158387737177180255457-3-011-XML', $result->getRequestID());
+    }
+
     public function testWrongAPIResponse(): void
     {
         $httpClient = $this->getHttpClientMock();
-        $httpClient->method('post')->willThrowException($this->getHttpResponseClientExceptionMock());
+        $httpClient->method('request')->willThrowException($this->getHttpResponseClientExceptionMock());
 
         $logger = $this->getLoggerMock();
 
@@ -50,7 +69,7 @@ class YandexSearchServiceTest extends AbstractTestCase
         $httpResponse->method('getBody')->willReturn($responseBody);
 
         $httpClient = $this->getHttpClientMock();
-        $httpClient->method('post')->willReturn($httpResponse);
+        $httpClient->method('request')->willReturn($httpResponse);
 
         $logger = $this->getLoggerMock();
 
@@ -74,7 +93,7 @@ class YandexSearchServiceTest extends AbstractTestCase
         $httpResponse->method('getBody')->willReturn($responseBody);
 
         $httpClient = $this->getHttpClientMock();
-        $httpClient->method('post')->willReturn($httpResponse);
+        $httpClient->method('request')->willReturn($httpResponse);
 
         $logger = $this->getLoggerMock();
 
@@ -105,6 +124,66 @@ class YandexSearchServiceTest extends AbstractTestCase
         $this->assertEquals('Яндекс — поисковая машина, способная...', $result->getResults()[0]->getSnippet());
     }
 
+    public function testResponseWithMultipleGroupsAndPassages(): void
+    {
+        $responseBody = $this->getHttpResponseBodyMock();
+        $responseBody->method('getContents')->willReturn($this->getMultiGroupResponseXML());
+
+        $httpResponse = $this->getHttpResponseMock();
+        $httpResponse->method('getStatusCode')->willReturn(200);
+        $httpResponse->method('getBody')->willReturn($responseBody);
+
+        $httpClient = $this->getHttpClientMock();
+        $httpClient->method('request')->willReturn($httpResponse);
+
+        $service = new YandexSearchService($httpClient, $this->getLoggerMock());
+        $service->setApiId('123');
+        $service->setApiKey('456');
+
+        $result = $service->search($this->getRequestMock());
+
+        $results = $result->getResults();
+        $this->assertCount(2, $results);
+
+        $this->assertEquals('https://example.com/first', $results[0]->getURL());
+        $this->assertEquals('First doc', $results[0]->getTitle());
+        // multiple passages are joined with a single space and trimmed
+        $this->assertEquals('first passage second passage', $results[0]->getSnippet());
+
+        $this->assertEquals('https://example.org/second', $results[1]->getURL());
+        $this->assertEquals('Second doc', $results[1]->getTitle());
+        $this->assertEquals('only passage', $results[1]->getSnippet());
+
+        $this->assertEquals(2, $result->getPagination()->getTotal());
+        $this->assertNull($result->getCorrection());
+    }
+
+    public function testResponseWithoutResultsYieldsEmptyResults(): void
+    {
+        $responseBody = $this->getHttpResponseBodyMock();
+        $responseBody->method('getContents')->willReturn($this->getNoResultsResponseXML());
+
+        $httpResponse = $this->getHttpResponseMock();
+        $httpResponse->method('getStatusCode')->willReturn(200);
+        $httpResponse->method('getBody')->willReturn($responseBody);
+
+        $httpClient = $this->getHttpClientMock();
+        $httpClient->method('request')->willReturn($httpResponse);
+
+        $logger = $this->getLoggerMock();
+
+        $service = new YandexSearchService($httpClient, $logger);
+        $service->setApiId('123');
+        $service->setApiKey('456');
+
+        $request = $this->getRequestMock();
+
+        $result = $service->search($request);
+
+        $this->assertSame([], $result->getResults());
+        $this->assertNull($result->getPagination());
+    }
+
     public function testResponseWithError(): void
     {
         $responseBody = $this->getHttpResponseBodyMock();
@@ -115,7 +194,7 @@ class YandexSearchServiceTest extends AbstractTestCase
         $httpResponse->method('getBody')->willReturn($responseBody);
 
         $httpClient = $this->getHttpClientMock();
-        $httpClient->method('post')->willReturn($httpResponse);
+        $httpClient->method('request')->willReturn($httpResponse);
 
         $logger = $this->getLoggerMock();
 

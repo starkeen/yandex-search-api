@@ -47,4 +47,12 @@ class ResultTest extends TestCase
         $this->expectException(SearchException::class);
         $result->getDomain();
     }
+
+    public function testResultWithHostlessUrlThrows(): void
+    {
+        $result = new Result('Test Title', '/just/a/path', null);
+
+        $this->expectException(SearchException::class);
+        $result->getDomain();
+    }
 }

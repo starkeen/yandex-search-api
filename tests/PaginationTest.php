@@ -25,4 +25,29 @@ class PaginationTest extends TestCase
 
         $this->assertEquals(618, $pagination->getPagesCount());
     }
+
+    public function testPagesCountIsZeroWhenTotalNotSet(): void
+    {
+        $pagination = new Pagination();
+        $pagination->setPageSize(20);
+
+        $this->assertEquals(0, $pagination->getPagesCount());
+    }
+
+    public function testPagesCountIsZeroWhenPageSizeNotSet(): void
+    {
+        $pagination = new Pagination();
+        $pagination->setTotal(12345);
+
+        $this->assertEquals(0, $pagination->getPagesCount());
+    }
+
+    public function testPagesCountIsZeroWhenPageSizeIsZero(): void
+    {
+        $pagination = new Pagination();
+        $pagination->setTotal(12345);
+        $pagination->setPageSize(0);
+
+        $this->assertEquals(0, $pagination->getPagesCount());
+    }
 }
